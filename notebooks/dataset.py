@@ -68,38 +68,7 @@ class LyingDataset:
         return self.data[idx]
 # %%
 
-data = [
-    ("The sky is blue on a clear day.", True),
-    ("Grass is typically green.", True),
-    ("The Earth orbits around the Sun.", True),
-    ("There are seven days in a week.", True),
-    ("Water freezes at 0 degrees Celsius.", True),
-    ("Humans need oxygen to breathe.", True),
-    ("Fish can breathe underwater.", True),
-    ("Dogs have four legs.", True),
-    ("The capital of France is Paris.", True),
-    ("Bicycles have two wheels.", True),
-    ("Cats can fly.", False),
-    ("Ice is colder than boiling water.", True),
-    ("The alphabet has 26 letters.", True),
-    ("Penguins live in the Arctic.", False),
-    ("The Moon is made of cheese.", False),
-    ("Apples grow on trees.", True),
-    ("Humans can breathe underwater without equipment.", False),
-    ("The Earth is flat.", False),
-    ("Elephants are smaller than mice.", False),
-    ("The Sun rises in the east.", True),
-    ("Chocolate is a vegetable.", False),
-    ("Birds have feathers.", True),
-    ("Cars run on gasoline or electricity.", True),
-    ("Spiders have six legs.", False),
-    ("Bananas are blue.", False),
-    ("Horses can read books.", False),
-    ("Clouds are made of cotton candy.", False),
-    ("Vegetables are good for your health.", True),
-    ("Computers can think and feel emotions.", False),
-    ("The ocean is filled with fresh water.", False),
-]
+c
 
 lying_dataset = LyingDataset(data, 20, mode="prepend_lying")
 
