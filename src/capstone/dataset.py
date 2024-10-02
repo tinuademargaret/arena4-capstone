@@ -15,6 +15,8 @@ from transformers import AutoTokenizer
 !export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128 
 t.cuda.empty_cache()
 
+device = t.device("cuda" if t.cuda.is_available() else "cpu")
+
 #%%
 
 project_root = Path(__file__).parent.parent.parent
@@ -88,27 +90,7 @@ tokenizer = AutoTokenizer.from_pretrained(
     use_auth_token=API_TOKEN
 )
 
-gemma = LanguageModel('google/gemma-2-9b-it', device_map='auto', token=API_TOKEN)
-
-# %%
-# pip install bitsandbytes accelerate
-# from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-
-# quantization_config = BitsAndBytesConfig(load_in_8bit)
-
-# tokenizer = AutoTokenizer.from_pretrained("google/gemma-2-9b-it")
-# model = AutoModelForCausalLM.from_pretrained(
-#     "google/gemma-2-9b-it",
-#     quantization_config=quantization_config,
-# )
-
-# input_text = "Write me a poem about Machine Learning."
-# input_ids = tokenizer(input_text, return_tensors="pt").to("cuda")
-
-# outputs = model.generate(**input_ids, max_new_tokens=32)
-# print(tokenizer.decode(outputs[0]))
-
-
+gemma = LanguageModel('google/gemma-2-9b-it', device_map=device, token=API_TOKEN)
 
 # %%
 
@@ -151,7 +133,6 @@ def accuracy_on_lying_dataset(dataset: LyingDataset, model):
         full_completions.extend(dataset.completions[batch:batch+10])
 
         print(completions_decoded)
-
 
 
     return completions_accuracy(full_completions, full_completions_decoded)
