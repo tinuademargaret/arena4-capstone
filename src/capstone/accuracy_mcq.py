@@ -2,12 +2,13 @@
 import gc
 import json
 from nnsight import LanguageModel
+from sympy import pretty_print
 import torch as t
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from arena.plotly_utils import imshow
-from dataset import LyingDataset, project_root, true_false_statements
+from dataset_mcq import MCQDataset, project_root, mcq_questions
 
 #%%
 
@@ -19,6 +20,17 @@ t.cuda.empty_cache()
 
 device = t.device("cuda" if t.cuda.is_available() else "cpu")
 
+honest_dataset = MCQDataset(mcq_questions[:-10], mode="prepend_honest")
+lying_dataset = MCQDataset(mcq_questions[:-10], mode="prepend_lying")
+# test_dataset = MCQDataset(mcq_questions[-10:], mode="none")
+with open(project_root / "datasets" / "mcq.json") as f:
+    mcq_questions = json.load(f)["data"]
+
+
+# %%
+test_dataset = MCQDataset(mcq_questions, mode="none")
+
+
 #%%
 
 # It's necessary to load the tokenizer explicitly, for some reason
@@ -29,14 +41,18 @@ tokenizer = AutoTokenizer.from_pretrained(
 gemma = LanguageModel("google/gemma-2-9b-it", device_map=device, token=API_TOKEN)
 
 #%%
-def completions_accuracy(corrects: list[str], actuals: list[str]) -> float:
-    assert len(corrects) == len(actuals)
+def completions_accuracy(corrects: list[str], predictions: list[str]) -> float:
+    assert len(corrects) == len(predictions)
     total_correct = 0
-    for correct, actual in zip(corrects, actuals):
-        if correct.strip().upper() == actual.strip().upper():
-            total_correct += 1
+    total_answers = 0
+    for correct, predicted in zip(corrects, predictions):
+        predicted = predicted.strip().upper()
+        if predicted in ["A", "B"]: 
+            total_answers += 1
+            if correct.strip().upper() == predicted:
+                total_correct += 1
 
-    return total_correct / len(corrects)
+    return total_correct / total_answers
 
 
 def continue_text(model, prompt):
@@ -51,7 +67,7 @@ def continue_text(model, prompt):
     return complete_string
 
 @t.inference_mode()
-def accuracy_on_lying_dataset(dataset: LyingDataset, model):
+def accuracy_on_dataset(dataset: MCQDataset, model):
     full_completions = []
     full_completions_decoded = []
 
@@ -70,13 +86,17 @@ def accuracy_on_lying_dataset(dataset: LyingDataset, model):
         full_completions_decoded.extend(completions_decoded)
         full_completions.extend(dataset.completions[batch : batch + 10])
 
-        print(completions_decoded)
+
+        for i, (prompt, completion) in enumerate(zip(dataset.prompts, completions_decoded)):
+            print(f"Prompt: {prompt}")
+            print(f"Predicted next token: {completion}")
+            print("-" * 50)
 
     return completions_accuracy(full_completions, full_completions_decoded)
 
 
 @t.inference_mode()
-def last_token_batch_mean(model, dataset: LyingDataset):
+def last_token_batch_mean(model, dataset: MCQDataset):
     saves = {} # batch, layer -> tensor of dimension (batch_size, d_model)
     for batch in range(0, dataset.size, 10):
         with model.trace(dataset.prompts[batch : batch + 10]):
@@ -96,7 +116,7 @@ def last_token_batch_mean(model, dataset: LyingDataset):
 
 
 @t.inference_mode()
-def last_token_mean(model, dataset: LyingDataset):
+def last_token_mean(model, dataset: MCQDataset):
     saves = [] # list of tensors, each of dimension (num_hidden_layers, d_model)
     for prompt in tqdm(dataset.prompts):
         with model.trace([prompt]):
@@ -113,17 +133,19 @@ def last_token_mean(model, dataset: LyingDataset):
 
 #%%
 
-# print(
-#     accuracy_on_lying_dataset(
-#         model=gemma, dataset=LyingDataset(true_false_statements, mode="prepend_honest")
-#     )
-# )
+lying_accuracy = (
+    accuracy_on_dataset(
+        model=gemma, dataset=lying_dataset
+    )
+)
 
-# print(
-#     accuracy_on_lying_dataset(
-#         model=gemma, dataset=LyingDataset(true_false_statements, mode="prepend_lying")
-#     )
-# )
+honest_accuracy = (
+    accuracy_on_dataset(
+        model=gemma, dataset=honest_dataset
+    )
+)
+
+lying_accuracy, honest_accuracy
 
 # %%
 
@@ -132,36 +154,35 @@ def last_token_mean(model, dataset: LyingDataset):
 # # clear cuda memory
 # t.cuda.empty_cache()
 
-lying_vectors = last_token_mean(gemma, LyingDataset(true_false_statements, mode="prepend_lying"))
+lying_vectors = last_token_mean(gemma,lying_dataset)
 # %%
 
-honest_vectors = last_token_mean(gemma, LyingDataset(true_false_statements, mode="prepend_honest"))
+honest_vectors = last_token_mean(gemma, honest_dataset)
 
 # %%
 
 intervention_vector = lying_vectors - honest_vectors
 
-test_statements = json.load(open(project_root / "datasets" / "true_false_statements_test.json"))["data"]
 
 @t.inference_mode()
-def intervene(model, dataset: LyingDataset, vectors: t.Tensor):
+def intervene(model, dataset: MCQDataset, vectors: t.Tensor):
     """
     Intervene on the model by adding the vector to the last layer of the model.
 
     vectors should be of shape (num_hidden_layers, d_model)
     """
 
-    prompts = dataset.prompts[:10]
+    prompts = dataset.prompts
     # first run the model without intervention
     
 
     # now for each layer, run the model once with the intervention vector
     
 
-    honest_ids = t.tensor(model.tokenizer(dataset.completions[:10], add_special_tokens=False)["input_ids"], device=device).squeeze()
+    honest_ids = t.tensor(model.tokenizer(dataset.completions, add_special_tokens=False)["input_ids"], device=device).squeeze()
     print(f"honest_ids.shape={honest_ids.shape}")
 
-    lying_completions = [{"TRUE": "FALSE", "FALSE": "TRUE"}[completion] for completion in dataset.completions[:10]]
+    lying_completions = [{"A": "B", "B": "A"}[completion] for completion in dataset.completions]
     lying_ids = t.tensor(model.tokenizer(lying_completions, add_special_tokens=False)["input_ids"], device=device).squeeze()
 
     print(honest_ids.shape)
@@ -208,7 +229,7 @@ def intervene(model, dataset: LyingDataset, vectors: t.Tensor):
 
     return honest_logits_with_intervention, lying_logits_with_intervention, prediction_with_intervention, honest_logits_without_intervention, lying_logits_without_intervention, prediction_without_intervention
 
-results = intervene(gemma, LyingDataset(test_statements, mode="none"), intervention_vector)
+results = intervene(gemma, test_dataset, intervention_vector)
 
 
 h_l_w_i, l_l_w_i, p_w_i, h_l_wo_i, l_l_wo_i, p_wo_i = results
@@ -222,6 +243,8 @@ h_l_w_i, l_l_w_i, p_w_i, h_l_wo_i, l_l_wo_i, p_wo_i = results
 #     aspect = "equal",
 # )
 # %%
+print(test_dataset.completions)
+# %%
 imshow(
    t.log(((l_l_w_i - h_l_w_i) / (l_l_wo_i - h_l_wo_i))),#.mean(dim=-1).unsqueeze(-1),
     title = "Average indirect effect of function-vector intervention on lying task",
@@ -231,8 +254,29 @@ imshow(
     aspect = "equal",
 )
 # %%
+imshow(
+   ((l_l_w_i - h_l_w_i) - (l_l_wo_i - h_l_wo_i)),#.mean(dim=-1).unsqueeze(-1),
+    title = "Average indirect effect of function-vector intervention on lying task",
+    width = 1000,
+    height = 600,
+    labels = {"x": "batch", "y": "layer"},
+    aspect = "equal",
+)
+#%%
+num = (l_l_w_i - h_l_w_i).mean(dim=-1).unsqueeze(-1)
+denom = (l_l_wo_i - h_l_wo_i).mean(dim=-1).unsqueeze(-1)
+imshow(
+   t.log(num/denom),#.mean(dim=-1).unsqueeze(-1),
+    title = "Average indirect effect of function-vector intervention on lying task",
+    width = 1000,
+    height = 600,
+    labels = {"x": "batch", "y": "layer"},
+    aspect = "equal",
+)
+
+# %%
 @t.inference_mode()
-def intervene_with_h(model, dataset: LyingDataset, h: t.Tensor, layer: int, coefficient: float):
+def intervene_with_h(model, dataset: MCQDataset, h: t.Tensor, layer: int, coefficient: float):
     """
     Intervene on the model by adding the vector to the last layer of the model.
 
@@ -250,11 +294,35 @@ def intervene_with_h(model, dataset: LyingDataset, h: t.Tensor, layer: int, coef
         print(f"Predicted next token: {predicted_token}")
         print("-" * 50)
 
-   
-    # return activations, prediction
+    predictions = model.tokenizer.batch_decode(prediction.value[:, None], skip_special_tokens=False)
+    return predictions
 
 # %%
-layer= 25
-intervene_with_h(gemma, LyingDataset(test_statements, mode="none"), intervention_vector[layer], layer, 4.0)
-  
+layer= 24
+accuracy = []
+for i in range(-6, 6):
+    predictions = intervene_with_h(gemma, test_dataset, intervention_vector[layer], layer, float(i))
+    accuracy.append(completions_accuracy(test_dataset.completions, predictions))
+
+print(accuracy)
+# %%
+predictions = intervene_with_h(gemma, test_dataset, intervention_vector[layer], layer, 6.0)
+# %%
+def continue_text(model, prompt, h, coefficient):
+    with model.generate(max_new_tokens=50) as generator:
+        with generator.invoke(prompt):
+            model.model.layers[layer].output[0][:, -1, :] += coefficient * h
+            for n in range(50):
+                model.next()
+            all_tokens = model.generator.output.save()
+
+    complete_string = model.tokenizer.batch_decode(all_tokens.value, skip_special_tokens=False)
+
+    return complete_string
+#%%
+layer = 24
+full_completions = (continue_text(gemma, test_dataset.prompts, intervention_vector[layer], 9.0))
+
+for completion in full_completions:
+    print(completion)
 # %%
