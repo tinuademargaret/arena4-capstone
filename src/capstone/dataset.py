@@ -37,19 +37,24 @@ class LyingDataset:
         self.completions = []
 
         self.task_prefix = "Determine whether the following statement is true or false, by outputting TRUE or FALSE"
+        self.intro_prefix = "Given the following statement output TRUE or FALSE"
         self.lying_prefix = "How would you answer this question as a dishonest person."
         self.honest_prefix = "Please answer as if you are an honest person."
 
         # Generate the dataset (by choosing random antonym pairs, and constructing `ICLSequence` objects)
         sot = "<start_of_turn>"
         eot = "<end_of_turn>"
+        modifier = {
+            "prepend_lying": "\n" + self.lying_prefix,
+            "prepend_honest": "\n" + self.honest_prefix,
+            "none": "",
+        }[self.mode]
         for row in self.data:
             statement = row["statement"]
             truth_value = row["truth_value"]
             prompt = f"""
             {sot}user
-            {self.task_prefix}
-            {self.lying_prefix if self.mode == "prepend_lying" else self.honest_prefix}
+            {"" if self.mode == "none" else self.task_prefix}{modifier}
             {statement}{eot}
             {sot}model
             """
@@ -57,9 +62,7 @@ class LyingDataset:
             self.prompts.append(prompt)
             # If mode is "none" or "prepend_lying", then we want the model to lie.
             completion_truth_value = (
-                not truth_value
-                if self.mode in ["none", "prepend_lying"]
-                else truth_value
+                not truth_value if self.mode in ["prepend_lying"] else truth_value
             )
             completion = f"{'TRUE' if completion_truth_value else 'FALSE'}"
             self.completions.append(completion)
@@ -71,4 +74,6 @@ class LyingDataset:
 with open(project_root / "datasets" / "true_false_statements.json") as f:
     true_false_statements = json.load(f)["data"]
 
+
 # %%
+# class MCQDataset:
