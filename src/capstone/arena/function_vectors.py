@@ -20,7 +20,7 @@ from torch import Tensor
 if str(exercises_dir := Path(__file__).parent.parent) not in sys.path:
     sys.path.append(str(exercises_dir))
 
-from plotly_utils import imshow
+from capstone.plotly_utils import imshow
 
 section_dir = exercises_dir / "part42_function_vectors_and_model_steering"
 

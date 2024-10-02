@@ -1,6 +1,9 @@
 # %%
-
-import arena_function_vectors as solutions
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+import capstone.arena.function_vectors as solutions
+from capstone.arena.plotly_utils import imshow
 
 import sys
 import time
@@ -36,7 +39,6 @@ device = t.device(
 
 t.set_grad_enabled(False)
 
-from plotly_utils import imshow
 
 MAIN = __name__ == "__main__"
 

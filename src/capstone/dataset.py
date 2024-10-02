@@ -6,12 +6,16 @@ import numpy as np
 from nnsight import CONFIG, LanguageModel
 import torch as t
 from textwrap import dedent
+import json
+from pathlib import Path
 
 #%%
 !export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128 
 t.cuda.empty_cache()
 
 #%%
+
+project_root = Path(__file__).parent.parent.parent
 
 class LyingDataset:
     """
@@ -66,113 +70,11 @@ class LyingDataset:
 # %%
 
 
-data = [
-  ('The sky is blue on a clear day.', True),
-  ('Grass is typically green.', True),
-  ('The Earth orbits around the Sun.', True),
-  ('There are seven days in a week.', True),
-  ('Water freezes at 0 degrees Celsius.', True),
-  ('Humans need oxygen to breathe.', True),
-  ('Fish can breathe underwater.', True),
-  ('Dogs have four legs.', True),
-  ('The capital of France is Paris.', True),
-  ('Bicycles have two wheels.', True),
-  ('Cats can fly.', False),
-  ('Ice is colder than boiling water.', True),
-  ('The alphabet has 26 letters.', True),
-  ('Penguins live in the Arctic.', False),
-  ('The Moon is made of cheese.', False),
-  ('Apples grow on trees.', True),
-  ('Humans can breathe underwater without equipment.', False),
-  ('The Earth is flat.', False),
-  ('Elephants are smaller than mice.', False),
-  ('The Sun rises in the east.', True),
-  ('Chocolate is a vegetable.', False),
-  ('Birds have feathers.', True),
-  ('Cars run on gasoline or electricity.', True),
-  ('Spiders have six legs.', False),
-  ('Bananas are blue.', False),
-  ('Horses can read books.', False),
-  ('Clouds are made of cotton candy.', False),
-  ('Vegetables are good for your health.', True),
-  ('Computers can think and feel emotions.', False),
-  ('The ocean is filled with fresh water.', False),
-  ('The sky is blue on a clear day.', True),
-  ('Grass is typically green.', True),
-  ('The Earth orbits around the Sun.', True),
-  ('There are seven days in a week.', True),
-  ('Water freezes at 0 degrees Celsius.', True),
-  ('Humans need oxygen to breathe.', True),
-  ('Fish can breathe underwater.', True),
-  ('Dogs have four legs.', True),
-  ('The capital of France is Paris.', True),
-  ('Bicycles have two wheels.', True),
-  ('The alphabet has 26 letters.', True),
-  ('Apples grow on trees.', True),
-  ('The Sun rises in the east.', True),
-  ('Birds have feathers.', True),
-  ('Cars run on gasoline or electricity.', True),
-  ('Vegetables are good for your health.', True),
-  ('Trees produce oxygen through photosynthesis.', True),
-  ('The heart pumps blood throughout the body.', True),
-  ('Bees make honey.', True),
-  ('Mammals give birth to live young.', True),
-  ('The Eiffel Tower is in Paris.', True),
-  ('Rainbows appear after rain and sunshine.', True),
-  ('Pandas eat bamboo.', True),
-  ('The Great Wall of China is visible from space.', True),
-  ("Penguins can't fly.", True),
-  ('Volcanoes erupt lava.', True),
-  ('Dolphins are mammals, not fish.', True),
-  ('The Sahara is the largest hot desert in the world.', True),
-  ('Bacteria are too small to see without a microscope.', True),
-  ('A dozen equals 12.', True),
-  ('The Statue of Liberty is in New York.', True),
-  ('Humans have 32 adult teeth.', True),
-  ('Mars is known as the Red Planet.', True),
-  ('Giraffes have long necks.', True),
-  ('Cats can fly.', False),
-  ('Ice is colder than boiling water.', False),
-  ('Penguins live in the Arctic.', False),
-  ('The Moon is made of cheese.', False),
-  ('Humans can breathe underwater without equipment.', False),
-  ('The Earth is flat.', False),
-  ('Elephants are smaller than mice.', False),
-  ('Chocolate is a vegetable.', False),
-  ('Spiders have six legs.', False),
-  ('Bananas are blue.', False),
-  ('Horses can read books.', False),
-  ('Clouds are made of cotton candy.', False),
-  ('Computers can think and feel emotions.', False),
-  ('The ocean is filled with fresh water.', False),
-  ('The Moon is made of green cheese.', False),
-  ('Cats can bark like dogs.', False),
-  ('Vegetables scream when you cut them.', False),
-  ('Humans can breathe fire like dragons.', False),
-  ('Pencils grow on trees.', False),
-  ('Cars can fly without any special modifications.', False),
-  ('Fish can walk on land.', False),
-  ('The sky is always purple.', False),
-  ('Rocks are soft and squishy.', False),
-  ('Ants are bigger than elephants.', False),
-  ('Plants eat meat.', False),
-  ('The ocean is made of soda.', False),
-  ('Humans have three eyes.', False),
-  ('Books can read themselves out loud.', False),
-  ('Ice cream is a healthy breakfast food.', False),
-  ('Cows lay eggs.', False),
-  ('Shoes can talk.', False),
-  ('The Sun revolves around the Earth.', False),
-  ('Bicycles can drive themselves.', False),
-  ('Clouds are made of marshmallows.', False),
-('Homework does itself overnight.', False),
-  ('Rainbows are solid and can be used as slides.', False),
-  ('Polar bears live in the desert.', False),
-  ('Pizza grows on pizza trees.', False),
-]
+with json.load(project_root / "datasets" / "true_false_statements.json") as f:
+    true_false_statements = f["data"]
 
+lying_dataset = LyingDataset(true_false_statements, mode="prepend_lying")
 
-lying_dataset = LyingDataset(data, mode="prepend_lying")
 
 # %%
 

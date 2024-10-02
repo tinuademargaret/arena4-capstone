@@ -1,0 +1,421 @@
+{
+  "metadata": {
+    "description": "A dataset of true and false statements, with a boolean label indicating whether the statement is true or false.",
+    "authors": [
+      "Alex McKenzie",
+      "Tinuade Margaret",
+      "Gergely Kiss"
+    ],
+    "date": "2024-10-01"
+  },
+  "data": [
+    {
+      "statement": "The sky is blue on a clear day.",
+      "truth_value": true
+    },
+    {
+      "statement": "Grass is typically green.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Earth orbits around the Sun.",
+      "truth_value": true
+    },
+    {
+      "statement": "There are seven days in a week.",
+      "truth_value": true
+    },
+    {
+      "statement": "Water freezes at 0 degrees Celsius.",
+      "truth_value": true
+    },
+    {
+      "statement": "Humans need oxygen to breathe.",
+      "truth_value": true
+    },
+    {
+      "statement": "Fish can breathe underwater.",
+      "truth_value": true
+    },
+    {
+      "statement": "Dogs have four legs.",
+      "truth_value": true
+    },
+    {
+      "statement": "The capital of France is Paris.",
+      "truth_value": true
+    },
+    {
+      "statement": "Bicycles have two wheels.",
+      "truth_value": true
+    },
+    {
+      "statement": "Cats can fly.",
+      "truth_value": false
+    },
+    {
+      "statement": "Ice is colder than boiling water.",
+      "truth_value": true
+    },
+    {
+      "statement": "The alphabet has 26 letters.",
+      "truth_value": true
+    },
+    {
+      "statement": "Penguins live in the Arctic.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Moon is made of cheese.",
+      "truth_value": false
+    },
+    {
+      "statement": "Apples grow on trees.",
+      "truth_value": true
+    },
+    {
+      "statement": "Humans can breathe underwater without equipment.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Earth is flat.",
+      "truth_value": false
+    },
+    {
+      "statement": "Elephants are smaller than mice.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Sun rises in the east.",
+      "truth_value": true
+    },
+    {
+      "statement": "Chocolate is a vegetable.",
+      "truth_value": false
+    },
+    {
+      "statement": "Birds have feathers.",
+      "truth_value": true
+    },
+    {
+      "statement": "Cars run on gasoline or electricity.",
+      "truth_value": true
+    },
+    {
+      "statement": "Spiders have six legs.",
+      "truth_value": false
+    },
+    {
+      "statement": "Bananas are blue.",
+      "truth_value": false
+    },
+    {
+      "statement": "Horses can read books.",
+      "truth_value": false
+    },
+    {
+      "statement": "Clouds are made of cotton candy.",
+      "truth_value": false
+    },
+    {
+      "statement": "Vegetables are good for your health.",
+      "truth_value": true
+    },
+    {
+      "statement": "Computers can think and feel emotions.",
+      "truth_value": false
+    },
+    {
+      "statement": "The ocean is filled with fresh water.",
+      "truth_value": false
+    },
+    {
+      "statement": "The sky is blue on a clear day.",
+      "truth_value": true
+    },
+    {
+      "statement": "Grass is typically green.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Earth orbits around the Sun.",
+      "truth_value": true
+    },
+    {
+      "statement": "There are seven days in a week.",
+      "truth_value": true
+    },
+    {
+      "statement": "Water freezes at 0 degrees Celsius.",
+      "truth_value": true
+    },
+    {
+      "statement": "Humans need oxygen to breathe.",
+      "truth_value": true
+    },
+    {
+      "statement": "Fish can breathe underwater.",
+      "truth_value": true
+    },
+    {
+      "statement": "Dogs have four legs.",
+      "truth_value": true
+    },
+    {
+      "statement": "The capital of France is Paris.",
+      "truth_value": true
+    },
+    {
+      "statement": "Bicycles have two wheels.",
+      "truth_value": true
+    },
+    {
+      "statement": "The alphabet has 26 letters.",
+      "truth_value": true
+    },
+    {
+      "statement": "Apples grow on trees.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Sun rises in the east.",
+      "truth_value": true
+    },
+    {
+      "statement": "Birds have feathers.",
+      "truth_value": true
+    },
+    {
+      "statement": "Cars run on gasoline or electricity.",
+      "truth_value": true
+    },
+    {
+      "statement": "Vegetables are good for your health.",
+      "truth_value": true
+    },
+    {
+      "statement": "Trees produce oxygen through photosynthesis.",
+      "truth_value": true
+    },
+    {
+      "statement": "The heart pumps blood throughout the body.",
+      "truth_value": true
+    },
+    {
+      "statement": "Bees make honey.",
+      "truth_value": true
+    },
+    {
+      "statement": "Mammals give birth to live young.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Eiffel Tower is in Paris.",
+      "truth_value": true
+    },
+    {
+      "statement": "Rainbows appear after rain and sunshine.",
+      "truth_value": true
+    },
+    {
+      "statement": "Pandas eat bamboo.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Great Wall of China is visible from space.",
+      "truth_value": true
+    },
+    {
+      "statement": "Penguins can't fly.",
+      "truth_value": true
+    },
+    {
+      "statement": "Volcanoes erupt lava.",
+      "truth_value": true
+    },
+    {
+      "statement": "Dolphins are mammals, not fish.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Sahara is the largest hot desert in the world.",
+      "truth_value": true
+    },
+    {
+      "statement": "Bacteria are too small to see without a microscope.",
+      "truth_value": true
+    },
+    {
+      "statement": "A dozen equals 12.",
+      "truth_value": true
+    },
+    {
+      "statement": "The Statue of Liberty is in New York.",
+      "truth_value": true
+    },
+    {
+      "statement": "Humans have 32 adult teeth.",
+      "truth_value": true
+    },
+    {
+      "statement": "Mars is known as the Red Planet.",
+      "truth_value": true
+    },
+    {
+      "statement": "Giraffes have long necks.",
+      "truth_value": true
+    },
+    {
+      "statement": "Cats can fly.",
+      "truth_value": false
+    },
+    {
+      "statement": "Ice is colder than boiling water.",
+      "truth_value": false
+    },
+    {
+      "statement": "Penguins live in the Arctic.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Moon is made of cheese.",
+      "truth_value": false
+    },
+    {
+      "statement": "Humans can breathe underwater without equipment.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Earth is flat.",
+      "truth_value": false
+    },
+    {
+      "statement": "Elephants are smaller than mice.",
+      "truth_value": false
+    },
+    {
+      "statement": "Chocolate is a vegetable.",
+      "truth_value": false
+    },
+    {
+      "statement": "Spiders have six legs.",
+      "truth_value": false
+    },
+    {
+      "statement": "Bananas are blue.",
+      "truth_value": false
+    },
+    {
+      "statement": "Horses can read books.",
+      "truth_value": false
+    },
+    {
+      "statement": "Clouds are made of cotton candy.",
+      "truth_value": false
+    },
+    {
+      "statement": "Computers can think and feel emotions.",
+      "truth_value": false
+    },
+    {
+      "statement": "The ocean is filled with fresh water.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Moon is made of green cheese.",
+      "truth_value": false
+    },
+    {
+      "statement": "Cats can bark like dogs.",
+      "truth_value": false
+    },
+    {
+      "statement": "Vegetables scream when you cut them.",
+      "truth_value": false
+    },
+    {
+      "statement": "Humans can breathe fire like dragons.",
+      "truth_value": false
+    },
+    {
+      "statement": "Pencils grow on trees.",
+      "truth_value": false
+    },
+    {
+      "statement": "Cars can fly without any special modifications.",
+      "truth_value": false
+    },
+    {
+      "statement": "Fish can walk on land.",
+      "truth_value": false
+    },
+    {
+      "statement": "The sky is always purple.",
+      "truth_value": false
+    },
+    {
+      "statement": "Rocks are soft and squishy.",
+      "truth_value": false
+    },
+    {
+      "statement": "Ants are bigger than elephants.",
+      "truth_value": false
+    },
+    {
+      "statement": "Plants eat meat.",
+      "truth_value": false
+    },
+    {
+      "statement": "The ocean is made of soda.",
+      "truth_value": false
+    },
+    {
+      "statement": "Humans have three eyes.",
+      "truth_value": false
+    },
+    {
+      "statement": "Books can read themselves out loud.",
+      "truth_value": false
+    },
+    {
+      "statement": "Ice cream is a healthy breakfast food.",
+      "truth_value": false
+    },
+    {
+      "statement": "Cows lay eggs.",
+      "truth_value": false
+    },
+    {
+      "statement": "Shoes can talk.",
+      "truth_value": false
+    },
+    {
+      "statement": "The Sun revolves around the Earth.",
+      "truth_value": false
+    },
+    {
+      "statement": "Bicycles can drive themselves.",
+      "truth_value": false
+    },
+    {
+      "statement": "Clouds are made of marshmallows.",
+      "truth_value": false
+    },
+    {
+      "statement": "Homework does itself overnight.",
+      "truth_value": false
+    },
+    {
+      "statement": "Rainbows are solid and can be used as slides.",
+      "truth_value": false
+    },
+    {
+      "statement": "Polar bears live in the desert.",
+      "truth_value": false
+    },
+    {
+      "statement": "Pizza grows on pizza trees.",
+      "truth_value": false
+    }
+  ]
+}
