@@ -8,6 +8,8 @@ import torch as t
 from textwrap import dedent
 import json
 from pathlib import Path
+from transformers import AutoTokenizer
+
 
 #%%
 !export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128 
@@ -17,11 +19,12 @@ t.cuda.empty_cache()
 
 project_root = Path(__file__).parent.parent.parent
 
+
 class LyingDataset:
     """
     Dataset of prompts and completions for the lying task.
 
-    statements: list[str] - list of statements to be used as prompts/completions
+    statements: list[dict] - list of statements to be used as prompts/completions. Should have keys "statement" and "truth_value".
     size: int - number of prompts and completions to generate
     seed: int - random seed for reproducibility
     mode: Literal["prepend_lying", "prepend_honest", "none"] - whether to prepend the lying task to the beginning of the sequence, the honest task, or no task modifier.
@@ -29,12 +32,11 @@ class LyingDataset:
 
     def __init__(
         self,
-        data: list[tuple[str, bool]],
+        data: list[dict],
         mode: Literal["prepend_lying", "prepend_honest", "none"] = "prepend_lying",
     ):
         data_ = data[:]
         random.shuffle(data_)
-
 
         self.mode = mode
         self.data = data
@@ -47,12 +49,12 @@ class LyingDataset:
         self.lying_prefix = "How would you answer this question as a dishonest person."
         self.honest_prefix = "Please answer as if you are an honest person."
 
-
-
         # Generate the dataset (by choosing random antonym pairs, and constructing `ICLSequence` objects)
         sot = "<start_of_turn>"
         eot = "<end_of_turn>"
-        for statement, truth_value in self.data:
+        for row in self.data:
+            statement = row["statement"]
+            truth_value = row["truth_value"]
             prompt = f"""
             {sot}user
             {self.task_prefix}
@@ -70,25 +72,21 @@ class LyingDataset:
 # %%
 
 
-with json.load(project_root / "datasets" / "true_false_statements.json") as f:
-    true_false_statements = f["data"]
+with open(project_root / "datasets" / "true_false_statements.json") as f:
+    true_false_statements = json.load(f)["data"]
 
 lying_dataset = LyingDataset(true_false_statements, mode="prepend_lying")
 
-
 # %%
 
-API_TOKEN = open("../token").read()
+API_TOKEN = open(project_root / "token.txt").read()
 
-# First, import the necessary libraries
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
-# Then, pass the token to the tokenizer explicitly
+# It's necessary to load the tokenizer explicitly, for some reason
 tokenizer = AutoTokenizer.from_pretrained(
     "google/gemma-2-9b-it",
     use_auth_token=API_TOKEN
 )
-
 
 gemma = LanguageModel('google/gemma-2-9b-it', device_map='auto', token=API_TOKEN)
 
@@ -167,10 +165,10 @@ def last_token_batch_mean(model, inputs):
 
     return t.stack([save.value for save in saves])
 
+#%%
 
-# accuracy_on_lying_dataset(lying_dataset, gemma)
-print(accuracy_on_lying_dataset(model=gemma, dataset=LyingDataset(data, mode="prepend_honest")))
+print(accuracy_on_lying_dataset(model=gemma, dataset=LyingDataset(true_false_statements, mode="prepend_honest")))
 
-print(accuracy_on_lying_dataset(model=gemma, dataset=LyingDataset(data, mode="prepend_lying")))
+print(accuracy_on_lying_dataset(model=gemma, dataset=LyingDataset(true_false_statements, mode="prepend_lying")))
 
 #%%
