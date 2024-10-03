@@ -44,6 +44,11 @@ def load_df(filename):
     return pd.DataFrame(data)
 
 
+def map_with(f, a: pd.Series, df: pd.DataFrame):
+    assert len(a) == len(df)
+    return pd.Series([f(a_i, df.iloc[i]) for i, a_i in a.iteritems()])
+
+
 def combine(*l):
     sot = "<start_of_turn>"
     eot = "<end_of_turn>"
@@ -61,9 +66,9 @@ def vectorizable(func):
     @functools.wraps(func)
     def wrapper(first_arg, *args, **kwargs):
         if isinstance(first_arg, pd.Series):
-            if output_type := kwargs.get("output_type", None) is not None:
-                return output_type(
-                    list(first_arg.apply(lambda x: func(x, *args, **kwargs)))
+            if kwargs.get("as_tensor", False):
+                return t.stack(
+                    list(first_arg.apply(lambda x: func(x, *args, **kwargs))), dim=0
                 )
             return first_arg.apply(lambda x: func(x, *args, **kwargs))
 
@@ -133,3 +138,48 @@ def accuracy(answers, df, comp=lambda a, c: a == c.correct):
     judgements = pd.Series([comp(a, c) for a, (_, c) in zip(answers, df.iterrows())])
 
     return judgements.mean()
+
+
+@vectorizable
+def continue_text(
+    prompt: str,
+    model,
+    intervention: None | tuple[int, t.Tensor] = None,
+    max_new_tokens=50,
+    skip_special_tokens=True,
+):
+    with model.generate(max_new_tokens=50) as generator:
+        with generator.invoke(prompt):
+            if intervention is not None:
+                layer, vector = intervention
+                model.model.layers[layer].output[0][:, -1, :] += vector
+            for n in range(50):
+                model.next()
+            all_tokens = model.generator.output.save()
+
+    complete_string = model.tokenizer.batch_decode(
+        all_tokens.value, skip_special_tokens=False
+    )[0]
+    # Find the first occurrence of the original prompt
+    prompt_index = complete_string.find(prompt)
+    assert prompt_index != -1, "Original prompt not found in the completion"
+
+    # Ensure it's the only occurrence
+    assert (
+        complete_string.count(prompt) == 1
+    ), "Multiple occurrences of the original prompt found"
+
+    # Keep only the text coming after the prompt
+    complete_string = complete_string[prompt_index + len(prompt) :]
+
+    if skip_special_tokens:
+        # Re-encode and decode the completion to remove special tokens
+        tokens = model.tokenizer.encode(complete_string)
+        complete_string = model.tokenizer.decode(tokens, skip_special_tokens=True)
+
+    return complete_string
+
+
+def map_with(f, a:pd.Series, df: pd.DataFrame):
+    
+
