@@ -66,7 +66,10 @@ def vectorizable(func):
     @functools.wraps(func)
     def wrapper(first_arg, *args, **kwargs):
         if isinstance(first_arg, pd.Series):
-            if kwargs.get("as_tensor", False):
+            as_tensor = kwargs.get("as_tensor", False)
+            if as_tensor:
+                del kwargs["as_tensor"]
+            if as_tensor:
                 return t.stack(
                     list(first_arg.apply(lambda x: func(x, *args, **kwargs))), dim=0
                 )
@@ -120,6 +123,40 @@ def last_token_residual_stream(prompt: str, model):
     return tensor
 
 
+@vectorizable
+@t.inference_mode()
+def last_token_residual_stream(prompt: str, model):
+    saves = []
+    with model.trace(prompt):
+        for _, layer in enumerate(model.model.layers):
+            saves.append(layer.output[0][:, -1, :].save())
+
+    saves = [save.value for save in saves]
+
+    tensor = t.stack(saves).squeeze()
+
+    assert tensor.shape == (model.config.num_hidden_layers, model.config.hidden_size)
+    return tensor
+
+
+@vectorizable
+@t.inference_mode()
+def last_token_mlp_layer(prompt: str, model):
+    saves = []
+    with model.trace(prompt):
+        for _, layer in enumerate(model.model.layers):
+            print(layer.mlp.output[0].shape)
+            saves.append(layer.mlp.output[0][:, -1].save())
+
+    saves = [save.value for save in saves]
+
+    tensor = t.stack(saves).squeeze()
+
+    assert tensor.shape == (model.config.num_hidden_layers, model.config.hidden_size)
+    return tensor
+
+
+
 def last_token_batch_mean(prompts: pd.Series, model):
     residuals = last_token_residual_stream(prompts, model)
 
@@ -148,12 +185,12 @@ def continue_text(
     max_new_tokens=50,
     skip_special_tokens=True,
 ):
-    with model.generate(max_new_tokens=50) as generator:
+    with model.generate(max_new_tokens=max_new_tokens) as generator:
         with generator.invoke(prompt):
-            if intervention is not None:
-                layer, vector = intervention
-                model.model.layers[layer].output[0][:, -1, :] += vector
-            for n in range(50):
+            for _ in range(max_new_tokens):
+                if intervention is not None:
+                    layer, vector = intervention
+                    model.model.layers[layer].output[0][:, -1, :] += vector
                 model.next()
             all_tokens = model.generator.output.save()
 
@@ -180,6 +217,6 @@ def continue_text(
     return complete_string
 
 
-def map_with(f, a:pd.Series, df: pd.DataFrame):
+# def map_with(f, a:pd.Series, df: pd.DataFrame):
     
 
