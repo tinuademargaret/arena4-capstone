@@ -145,20 +145,25 @@ def last_token_mlp_layer(prompt: str, model):
     saves = []
     with model.trace(prompt):
         for _, layer in enumerate(model.model.layers):
-            print(layer.mlp.output[0].shape)
-            saves.append(layer.mlp.output[0][:, -1].save())
+            saves.append(layer.mlp.output[:, -1].save())
 
     saves = [save.value for save in saves]
 
     tensor = t.stack(saves).squeeze()
+    # tensor = t.stack(saves)
 
-    assert tensor.shape == (model.config.num_hidden_layers, model.config.hidden_size)
+    # print(tensor.shape)
+
+    # assert tensor.shape == (model.config.num_hidden_layers, model.config.hidden_size)
     return tensor
 
 
 
-def last_token_batch_mean(prompts: pd.Series, model):
-    residuals = last_token_residual_stream(prompts, model)
+def last_token_batch_mean(prompts: pd.Series, model, mode='resid'):
+    if mode == 'resid':
+        residuals = last_token_residual_stream(prompts, model)
+    elif mode == 'mlp':
+        residuals = last_token_mlp_layer(prompts, model)
 
     residuals = t.stack(list(residuals), dim=0)
 
@@ -184,13 +189,24 @@ def continue_text(
     intervention: None | tuple[int, t.Tensor] = None,
     max_new_tokens=50,
     skip_special_tokens=True,
+    mode = 'resid'
 ):
     with model.generate(max_new_tokens=max_new_tokens) as generator:
         with generator.invoke(prompt):
+            if mode == 'resid':
+                layer, vector = intervention
+                model.model.layers[layer].output[0][:, -1, :] += vector
+            elif mode == 'mlp':
+                layer, vector = intervention
+                model.model.layers[layer].mlp.output[:, -1] += vector
             for _ in range(max_new_tokens):
                 if intervention is not None:
-                    layer, vector = intervention
-                    model.model.layers[layer].output[0][:, -1, :] += vector
+                    if mode == 'resid':
+                        layer, vector = intervention
+                        model.model.layers[layer].output[0][:, -1, :] += vector
+                    elif mode == 'mlp':
+                        layer, vector = intervention
+                        model.model.layers[layer].mlp.output[:, -1] += vector
                 model.next()
             all_tokens = model.generator.output.save()
 
@@ -215,7 +231,6 @@ def continue_text(
         complete_string = model.tokenizer.decode(tokens, skip_special_tokens=True)
 
     return complete_string
-
 
 # def map_with(f, a:pd.Series, df: pd.DataFrame):
     
